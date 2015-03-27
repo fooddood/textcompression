@@ -1,0 +1,162 @@
+import sys
+import time
+import random
+
+def decompressor():
+    c = open('compressed.txt', 'r')
+    code = c.readline()
+    
+    compression_vector = [''] * 30
+    compression_key = [''] * 30
+    number = 0
+
+    line = ''
+    allfound = False
+    
+    while allfound == False:
+        line = c.readline()
+        if line == code:
+            allfound = True
+            break
+        for x in range(0, len(line)):            
+            if x == 0:
+                compression_vector[number] = line[x]
+            elif line[x] != '\n':
+                compression_key[number] = compression_key[number] + line[x]
+        number = number + 1
+        
+    file = c.read()
+
+    for i in range(0, number):
+        file = file.replace(compression_vector[i], compression_key[i])
+
+    d = open('decompressed.txt', 'r+')
+    d.write(file)
+    d.close()
+    
+
+    
+
+    
+            
+
+    
+
+
+
+def compressor(strings, file, complevel):
+    uncom = sys.getsizeof(file)
+    compressed = open('compressed.txt', 'w')
+    compressors = [None] * complevel
+
+    compnum = 0
+
+    code = random.randint(0, round(time.time()))
+    compressed.write(str(code))
+    compressed.write('\n')
+    
+    for i in range(0, 91):
+        test = chr(i + 35)
+
+        if test not in file and compnum < complevel:
+            compressors[compnum] = test
+            compressed.write(test)
+            compressed.write(strings[compnum])
+            compressed.write('\n')
+            compnum = compnum + 1
+
+    compressed.write(str(code))
+    compressed.write('\n')
+
+    
+
+    for n in range(0, compnum):
+        file = file.replace(strings[n], compressors[n])
+
+    compressed.write(file)
+    com = sys.getsizeof(file)
+
+    compressed.close()
+
+    print("Uncompressed:", uncom,"\nCompressed:", com, "\nSaved:", (uncom - com), "bytes.")
+
+   
+def string_finder():
+
+    complevel = eval(input("Please enter the number of compressors you'd like. Note that you're unlikely to get more than 10-15. Mathematical papers will get significantly fewer.\n"))
+
+    f = open('sample_text.txt', 'r')
+    file = f.read()
+    f.close()
+
+    string = ''
+    score = 0
+    
+    x = len(file)
+
+
+    strings = [''] * complevel
+    scores = [0] * complevel
+    
+
+    
+    for i in range(0, x):
+        string = string + file[i]
+        count = file.count(string)
+        score = len(string) * count
+
+        if len(string) > 3:
+            if validtest(string, strings, score, scores, count, complevel):
+                strings, scores = sorter(strings, scores, string, score, complevel)
+            else:
+                score = 0
+                string = ''
+                
+            
+    compressor(strings, file, complevel)
+
+        
+def sorter(strings, scores, string, score, complevel):
+    for i in range(0,complevel):
+        if string == strings[i]:
+            return strings, scores
+        if score > scores[i]:
+            oldscore = scores[i]
+            oldstring = strings[i]
+
+            scores[i] = score
+            strings[i] = string
+
+            score = oldscore
+            string = oldstring
+    return strings, scores
+
+    
+
+def validtest(string, strings, score, scores, count, complevel):
+
+    if count == 1:
+        return False
+
+    if score < scores[complevel - 1]:
+        return False
+
+    if len(string) < 3:
+        return False
+
+    else:
+        return True
+    
+
+
+def main():
+    random.seed(time.clock())
+    selection = input("1 - Compress a file\n2 - Uncompress a file\n")
+    if selection == '1':
+        string_finder()
+
+    else:
+        decompressor()
+
+
+main()
